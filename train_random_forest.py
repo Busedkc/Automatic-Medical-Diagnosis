@@ -9,6 +9,8 @@ from sklearn.model_selection import cross_val_score
 from scipy.sparse import hstack
 import json
 from pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # 1. SETTINGS AND DATA LOADING
 TRAIN_PATH = "dataset/ddxplus/train.csv"
@@ -106,9 +108,35 @@ print(f"Recall (Weighted)      : {rec:.4f}")
 print(f"F1-Score (Weighted)    : {f1:.4f}")
 print(f"MCC                    : {mcc:.4f}")
 
-# 7. SAVING RESULTS
+# 7. SAVING RESULTS AND VISUALIZATION
 output_dir = Path("outputs")
 output_dir.mkdir(exist_ok=True)
+
+# Plot 1: Accuracy Comparison
+print("\nGenerating Accuracy Comparison chart...")
+plt.figure(figsize=(10, 6))
+labels = ['Train (CV)', 'Validation', 'Test']
+scores = [cv_scores.mean(), accuracy_score(y_val, y_val_pred), acc]
+sns.barplot(x=labels, y=scores, palette='viridis')
+plt.ylim(min(scores) - 0.05, 1.0) # Zoom in to see the difference
+plt.title('Model Accuracy Comparison')
+plt.ylabel('Accuracy')
+plt.savefig(output_dir / "accuracy_comparison.png")
+plt.close()
+
+# Plot 2: Confusion Matrix (Simplified for visibility)
+print("Generating Confusion Matrix heatmap...")
+plt.figure(figsize=(12, 10))
+# To make it readable, we'll only show the top 20 classes
+sns.heatmap(cm[:20, :20], annot=True, fmt='d', cmap='Blues', 
+            xticklabels=encoders['le'].classes_[:20], 
+            yticklabels=encoders['le'].classes_[:20])
+plt.title('Confusion Matrix (Top 20 Classes)')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.tight_layout()
+plt.savefig(output_dir / "confusion_matrix.png")
+plt.close()
 
 # Save metrics to JSON
 results = {
@@ -121,14 +149,14 @@ results = {
     "cv_std": cv_scores.std() if 'cv_scores' in locals() else None
 }
 
-with open(output_dir / "simple_rf_metrics.json", "w") as f:
+with open(output_dir / "rf_final_metrics.json", "w") as f:
     json.dump(results, f, indent=4)
 
 # Save Confusion Matrix to CSV
 cm_df = pd.DataFrame(cm, index=encoders['le'].classes_, columns=encoders['le'].classes_)
-cm_df.to_csv(output_dir / "simple_rf_confusion_matrix.csv")
+cm_df.to_csv(output_dir / "rf_final_confusion_matrix.csv")
 
-print(f"\n[INFO] All metrics saved to '{output_dir}' directory.")
+print(f"\n[INFO] All metrics and plots saved to '{output_dir}' directory.")
 
 # 8. RELIABILITY TESTS (SANITY CHECKS)
 print("\n" + "="*40)
