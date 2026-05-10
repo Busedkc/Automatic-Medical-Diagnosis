@@ -1,0 +1,26 @@
+{
+    "accuracy": 0.9937411264485724,
+    "precision": 0.9945274953019116,
+    "recall": 0.9937411264485724,
+    "f1_score": 0.993528701374451,
+    "mcc": 0.9935807882533961,
+    "train_accuracy": 0.9938397156011787,
+    "val_accuracy": 0.9933634331964243,
+    "ablation": {
+        "Baseline (AGE+SEX+Evidences)": {
+            "val_acc": 0.9928198236288959,
+            "test_acc": 0.9931687591523017,
+            "test_f1": 0.9929482093354778
+        },
+        "+ DDX probabilities": {
+            "val_acc": 0.9937182894418942,
+            "test_acc": 0.9939492600108527,
+            "test_f1": 0.9937426478623768
+        },
+        "+ DDX probabilities + Initial Evidence": {
+            "val_acc": 0.9933634331964243,
+            "test_acc": 0.9937411264485724,
+            "test_f1": 0.993528701374451
+        }
+    }
+}
