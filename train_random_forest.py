@@ -19,15 +19,40 @@ TEST_PATH = "dataset/ddxplus/test.csv"
 
 print("Loading datasets (Sampling for efficiency)...")
 try:
-    # 200k train, 25k val, and 25k test for robust evaluation
-    train_df = pd.read_csv(TRAIN_PATH).sample(200000, random_state=42)
-    val_df = pd.read_csv(VAL_PATH).sample(25000, random_state=42)
-    test_df = pd.read_csv(TEST_PATH).sample(25000, random_state=42)
+    # Using the FULL dataset for final training
+    print("Reading full datasets (This may take a while)...")
+    train_df = pd.read_csv(TRAIN_PATH)
+    val_df = pd.read_csv(VAL_PATH)
+    test_df = pd.read_csv(TEST_PATH)
 except FileNotFoundError:
     print(f"Error: Data files not found! Please check the paths.")
     exit()
 
-# 2. PREPROCESSING FUNCTION
+# 2. DATA EXPLORATION (EDA)
+def explore_data(df, name="Training"):
+    print(f"\n" + "="*40)
+    print(f"       DATA EXPLORATION: {name.upper()}")
+    print("="*40)
+    print(f"Total Records          : {len(df)}")
+    print(f"Unique Pathologies     : {df['PATHOLOGY'].nunique()}")
+    
+    print("\nTop 5 Most Frequent Pathologies:")
+    print(df['PATHOLOGY'].value_counts().head(5))
+    
+    # Analyze symptoms (EVIDENCES)
+    # Converting string list to actual list length
+    num_symptoms = df['EVIDENCES'].apply(lambda x: len(ast.literal_eval(x)))
+    print(f"\nAverage symptoms per patient : {num_symptoms.mean():.2f}")
+    print(f"Maximum symptoms in a patient: {num_symptoms.max()}")
+    
+    print("\nAge Distribution Summary:")
+    print(df['AGE'].describe()[['mean', 'min', 'max']])
+    print("="*40)
+
+# Run Exploration
+explore_data(train_df, "Training")
+
+# 3. PREPROCESSING FUNCTION
 def prepare_data(df, encoders=None, is_train=True):
     # EVIDENCES column contains string lists. Converting them to real lists.
     # e.g., "['E_1', 'E_2']" -> ['E_1', 'E_2']
@@ -121,7 +146,7 @@ sns.barplot(x=labels, y=scores, palette='viridis')
 plt.ylim(min(scores) - 0.05, 1.0) # Zoom in to see the difference
 plt.title('Model Accuracy Comparison')
 plt.ylabel('Accuracy')
-plt.savefig(output_dir / "accuracy_comparison.png")
+plt.savefig(output_dir / "rf_accuracy_comparison.png")
 plt.close()
 
 # Plot 2: Confusion Matrix (Simplified for visibility)
@@ -135,7 +160,7 @@ plt.title('Confusion Matrix (Top 20 Classes)')
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.tight_layout()
-plt.savefig(output_dir / "confusion_matrix.png")
+plt.savefig(output_dir / "rf_confusion_matrix.png")
 plt.close()
 
 # Save metrics to JSON
